@@ -10,9 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
-
-	"github.com/PaulBabatuyi/Double-Entry-Bank-Go/internal/db"
-	"github.com/PaulBabatuyi/Double-Entry-Bank-Go/postgres/sqlc"
+	"github.com/vitu69/livro-razao/internal/db"
+	"github.com/vitu69/livro-razao/postgres/sqlc"
 )
 
 var (

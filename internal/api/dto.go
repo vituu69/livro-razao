@@ -12,10 +12,21 @@ type AccountResponse struct {
 	IsSystem  bool      `json:"is_system"`
 }
 
-type EntryResponse struct {
+type RegisterResponse struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
 	Token  string `json:"token"`
+}
+
+type EntryResponse struct {
+	ID            string    `json:"id"`
+	AccountID     string    `json:"account_id"`
+	Debit         string    `json:"debit"`
+	Credit        string    `json:"credit"`
+	TransactionID string    `json:"transaction_id"`
+	OperationType string    `json:"operation_type"`
+	Description   string    `json:"description"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type TokenResponse struct {

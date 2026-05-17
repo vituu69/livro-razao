@@ -2,25 +2,18 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-	"strconv"
-	"strings"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/jwtauth/v5"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/vitu69/livro-razao/internal/db"
+	"github.com/vitu69/livro-razao/internal/service"
+	"github.com/vitu69/livro-razao/postgres/sqlc"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/PaulBabatuyi/Double-Entry-Bank-Go/internal/db"
-	"github.com/PaulBabatuyi/Double-Entry-Bank-Go/internal/service"
-	"github.com/PaulBabatuyi/Double-Entry-Bank-Go/postgres/sqlc"
 )
 
 type Handler struct {
 	ledger *service.LedgerService
-	store *db.Store
+	store  *db.Store
 }
 
 func NewHandler(ledger *service.LedgerService, store *db.Store) *Handler {
@@ -32,13 +25,13 @@ func NewHandler(ledger *service.LedgerService, store *db.Store) *Handler {
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decoder(&input);  err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Warn().Err(err).Msg("Failed to decode registration request")
-		respondRerror(w, http.StatusBadRequest, "Invalid request payload")
+		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -55,27 +48,27 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.store.CreateUser(r.Context(), sqlc.CreateUserParams{
-		Email: input.Email,
+		Email:          input.Email,
 		HashedPassword: string(hashed),
 	})
 	if err != nil {
-		log.Error().err(err).Msg("Failed to create user")
+		log.Error().Err(err).Msg("Failed to create user")
 		respondError(w, http.StatusConflict, "Email already exists")
 		return
 	}
 
 	token, err := GenerateJWT(user.ID)
 	if err != nil {
-		log.Error().Err(err).Str("user_id", user.ID()).Msg("Failed to generate JWT token")
-		respondError(w http.StatusInternalServerError, "Failed to generate token")
+		log.Error().Err(err).Str("user_id", user.ID.String()).Msg("Failed to generate JWT token")
+		respondError(w, http.StatusInternalServerError, "Failed to generate token")
 		return
 	}
 
 	log.Info().Str("user_id", user.ID.String()).Str("email", user.Email).Msg("User registered successfully")
 	respondJSON(w, http.StatusCreated, RegisterResponse{
-		UserID: user.ID.String()
-		Email: user.Email,
-		Token: token,
+		UserID: user.ID.String(),
+		Email:  user.Email,
+		Token:  token,
 	})
 
 }
